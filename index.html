@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Belote 1001">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<title>Belote Amici Roost Warendin</title>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt:#1a5c2a;--felt2:#174f24;--felt3:#0f3a1a;
+  --or:#c9a84c;--or-clair:#f0d060;--or-dim:#8a6f2e;
+  --chip-rouge:#c0392b;--chip-bleu:#1a3a6e;--chip-noir:#111;
+  --bord:#8a6f2e;--bord2:#c9a84c;
+  --texte:#f5efe0;--texte2:#d4c080;--texte3:#a89060;
+  --vert-win:#2ecc71;--rouge-lose:#e74c3c;
+  --card-bg:#fdfaf0;--card-bord:#c9a84c;
+  --shadow:0 8px 32px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* FOND FEUTRINE */
+body{
+  min-height:100vh;
+  min-height:-webkit-fill-available;
+  font-family:'Crimson Text',Georgia,serif;
+  color:var(--texte);
+  -webkit-tap-highlight-color:transparent;
+  overscroll-behavior:none;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(42,120,60,.4) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 100%, rgba(10,40,18,.6) 0%, transparent 60%),
+    repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px),
+    repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px),
+    linear-gradient(160deg,#1d6b30 0%,#144d20 40%,#0e3818 100%);
+  background-attachment:fixed;
+}
+
+/* HEADER — style enseigne casino */
+header{
+  background:linear-gradient(180deg,#0a0a0a 0%,#1a1a1a 100%);
+  border-bottom:3px solid var(--or);
+  padding:0;
+  text-align:center;
+  box-shadow:0 4px 30px rgba(0,0,0,.8),0 0 60px rgba(201,168,76,.1);
+  position:relative;
+  overflow:hidden;
+}
+header::before{
+  content:'';
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(201,168,76,.03) 60px,rgba(201,168,76,.03) 61px);
+  pointer-events:none;
+}
+.header-inner{
+  padding:calc(env(safe-area-inset-top, 12px) + 14px) 20px 16px;
+  position:relative;
+}
+.header-suits{
+  display:flex;justify-content:center;gap:18px;
+  font-size:1.1rem;margin-bottom:6px;
+  letter-spacing:4px;
+}
+.header-suits .s{color:#f0f0f0}.header-suits .h{color:#e74c3c}
+.header-suits .d{color:#e74c3c}.header-suits .c{color:#f0f0f0}
+header h1{
+  font-family:'Cinzel',serif;
+  font-size:clamp(1.6rem,5vw,2.8rem);
+  font-weight:900;
+  color:transparent;
+  background:linear-gradient(180deg,#f5e070 0%,#c9a84c 40%,#8a6f2e 70%,#c9a84c 100%);
+  -webkit-background-clip:text;background-clip:text;
+  text-shadow:none;
+  letter-spacing:4px;
+  text-transform:uppercase;
+}
+header p{
+  color:var(--texte3);
+  font-style:italic;
+  font-size:.92rem;
+  margin-top:4px;
+  letter-spacing:1px;
+}
+.header-deco{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-top:8px;
+  font-size:.7rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--or-dim);
+}
+.header-deco::before,.header-deco::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--or-dim));}
+.header-deco::after{background:linear-gradient(90deg,var(--or-dim),transparent);}
+
+/* TABS */
+.tabs{
+  display:flex;
+  background:linear-gradient(180deg,#111 0%,#0a0a0a 100%);
+  border-bottom:2px solid var(--or-dim);
+  overflow-x:auto;
+}
+.tab{
+  flex:1;min-width:72px;padding:13px 6px;
+  text-align:center;cursor:pointer;
+  color:var(--texte3);
+  font-family:'Cinzel',serif;
+  font-size:.7rem;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+  border-bottom:3px solid transparent;
+  transition:all .25s;white-space:nowrap;
+  position:relative;
+}
+.tab:hover{color:var(--or-clair);background:rgba(201,168,76,.05)}
+.tab.active{
+  color:var(--or-clair);
+  border-bottom-color:var(--or);
+  background:rgba(201,168,76,.08);
+}
+
+/* PAGES */
+.page{display:none;padding:20px 14px calc(70px + env(safe-area-inset-bottom, 0px));max-width:900px;margin:0 auto}
+.page.active{display:block}
+
+/* SECTION TITLE */
+.section-title{
+  font-family:'Cinzel',serif;
+  font-size:1.05rem;font-weight:700;
+  color:var(--or-clair);
+  margin-bottom:14px;padding-bottom:8px;
+  border-bottom:1px solid var(--or-dim);
+  display:flex;align-items:center;gap:8px;
+  text-transform:uppercase;letter-spacing:2px;
+}
+
+/* INFO BOX */
+.info-box{
+  background:rgba(0,0,0,.35);
+  border:1px solid var(--or-dim);
+  border-left:3px solid var(--or);
+  border-radius:6px;
+  padding:10px 14px;
+  font-size:.92rem;
+  color:var(--texte2);
+  margin-bottom:16px;
+}
+.info-box strong{color:var(--or-clair)}
+
+/* CARDS — joueurs et équipes */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+@media(max-width:500px){.setup-grid{grid-template-columns:1fr}}
+.joueurs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+@media(max-width:600px){.joueurs-grid{grid-template-columns:repeat(2,1fr)}}
+
+.joueur-card,.equipe-card{
+  background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.02) 100%);
+  border:1px solid rgba(201,168,76,.3);
+  border-radius:8px;
+  padding:8px 10px;
+  display:flex;align-items:center;gap:8px;
+  box-shadow:0 2px 10px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05);
+  transition:border-color .2s,box-shadow .2s;
+}
+.joueur-card:hover,.equipe-card:hover{
+  border-color:rgba(201,168,76,.6);
+  box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 8px rgba(201,168,76,.1);
+}
+
+.joueur-num,.equipe-num{
+  background:linear-gradient(135deg,#8a0000,#c0392b);
+  color:var(--or-clair);
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-weight:700;font-size:.72rem;
+  flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.15);
+  border:1px solid rgba(201,168,76,.4);
+}
+.equipe-inputs{flex:1;display:flex;flex-direction:column;gap:4px}
+
+.joueur-card input,.equipe-inputs input{
+  border:1px solid rgba(201,168,76,.25);
+  border-radius:5px;padding:4px 8px;
+  font-family:'Crimson Text',serif;font-size:.9rem;
+  background:rgba(0,0,0,.3);
+  color:var(--texte);
+  outline:none;transition:border-color .2s,background .2s;width:100%;
+}
+.joueur-card input:focus,.equipe-inputs input:focus{
+  border-color:var(--or);
+  background:rgba(0,0,0,.5);
+}
+.joueur-card input::placeholder{color:rgba(255,255,255,.25)}
+
+/* BOUTONS */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  border:none;border-radius:6px;
+  padding:11px 18px;min-height:44px;
+  font-family:'Cinzel',serif;font-size:.78rem;font-weight:700;
+  cursor:pointer;letter-spacing:1px;text-transform:uppercase;
+  transition:all .2s;
+  background:linear-gradient(135deg,#8a0000,#c0392b);
+  color:var(--or-clair);
+  box-shadow:0 3px 12px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1);
+  border:1px solid rgba(201,168,76,.3);
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.6),0 0 12px rgba(192,57,43,.3);filter:brightness(1.1)}
+.btn:active{transform:translateY(0)}
+.btn.sec{
+  background:rgba(0,0,0,.4);
+  color:var(--or);
+  border:1px solid var(--or-dim);
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.btn.sec:hover{background:rgba(201,168,76,.1);color:var(--or-clair);border-color:var(--or)}
+.btn.or{
+  background:linear-gradient(135deg,#8a6f2e,#c9a84c,#8a6f2e);
+  color:#0a0a0a;border:1px solid var(--or-clair);
+}
+.btn.or:hover{filter:brightness(1.15)}
+.btn.vert{
+  background:linear-gradient(135deg,#0f4d1a,#1e7e34);
+  color:var(--or-clair);border:1px solid rgba(46,204,113,.3);
+}
+.btn.vert:hover{filter:brightness(1.1)}
+.btn.bleu{background:linear-gradient(135deg,#0a1f4d,#1a3a6e);color:var(--or-clair);border:1px solid rgba(26,58,110,.5)}
+.btn.bleu:hover{filter:brightness(1.15)}
+
+/* ROUND HEADER */
+.round-header{
+  background:linear-gradient(90deg,#1a0000,#2a0808,#1a0000);
+  border:1px solid var(--or-dim);
+  border-left:4px solid var(--chip-rouge);
+  border-bottom:2px solid var(--or);
+  border-radius:10px 10px 0 0;
+  padding:10px 14px;
+  font-family:'Cinzel',serif;font-size:.92rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--or-clair);
+  margin-top:24px;
+  display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+}
+
+/* MATCH BLOC */
+.match-bloc{
+  background:linear-gradient(160deg,rgba(20,75,35,.85),rgba(12,48,22,.9));
+  border-left:3px solid var(--or);
+  border-right:1px solid rgba(201,168,76,.3);
+  border-bottom:2px solid rgba(201,168,76,.35);
+  border-top:none;
+  padding:14px 12px;
+  margin-bottom:10px;
+  border-radius:0 0 8px 8px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4), inset 0 0 30px rgba(0,0,0,.2);
+}
+.match-bloc:last-of-type{border-radius:0 0 10px 10px}
+
+.match-equipes{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:8px}
+.eq-name{font-family:'Cinzel',serif;font-size:.85rem;font-weight:700;color:var(--or-clair);letter-spacing:.5px}
+.eq-name.r{text-align:right}
+.eq-sub{font-size:.75rem;color:rgba(255,255,255,.5)}
+.eq-sub.r{text-align:right}
+
+.vs-badge{
+  background:linear-gradient(135deg,#8a0000,#c0392b);
+  color:var(--or-clair);border-radius:50%;
+  width:30px;height:30px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:700;font-family:'Cinzel',serif;
+  flex-shrink:0;
+  box-shadow:0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1);
+  border:1px solid rgba(201,168,76,.4);
+}
+
+/* ADVERSAIRES */
+.deja-bloc{font-size:.7rem;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.deja-bloc .pill{display:inline-block;background:rgba(0,0,0,.3);border:1px solid rgba(201,168,76,.2);border-radius:4px;padding:1px 5px;margin:1px;color:rgba(201,168,76,.6);font-style:normal}
+
+/* TABLEAU MANCHES */
+.mt{width:100%;border-collapse:collapse;font-size:.84rem;table-layout:fixed}
+.mt col.c-manche{width:16%}
+.mt col.c-score{width:22%}
+.mt col.c-cum{width:18%}
+.mt th{
+  background:rgba(0,0,0,.5);
+  padding:7px 3px;text-align:center;
+  font-family:'Cinzel',serif;font-size:.62rem;
+  color:var(--or);letter-spacing:.3px;text-transform:uppercase;
+  border-bottom:1px solid var(--or-dim);
+  white-space:nowrap;overflow:hidden;
+}
+.mt th:first-child{text-align:left;padding-left:6px}
+.mt td{padding:5px 3px;text-align:center;border-bottom:1px solid rgba(255,255,255,.05);color:var(--texte)}
+.mt td:first-child{text-align:left;font-size:.7rem;color:rgba(255,255,255,.4);padding-left:6px}
+.mt td.cum{font-size:.78rem;font-style:italic;font-weight:600}
+.mt input{
+  width:100%;
+  max-width:62px;
+  border:1px solid rgba(201,168,76,.35);
+  border-radius:5px;padding:6px 2px;text-align:center;
+  font-family:'Crimson Text',serif;font-size:.95rem;
+  background:rgba(0,0,0,.45);
+  color:var(--texte);
+  outline:none;transition:border-color .2s,background .2s;
+  -webkit-appearance:none;
+  box-sizing:border-box;
+}
+.mt input:focus{border-color:var(--or);background:rgba(0,0,0,.7)}
+.mt input:disabled{background:rgba(0,0,0,.2);color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.08)}
+.mt tr.done td{background:rgba(46,204,113,.07)}
+
+/* TOTAUX */
+.totaux{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.tb{
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(201,168,76,.2);
+  border-radius:8px;padding:8px 12px;
+}
+.tb-label{font-size:.68rem;color:var(--texte3);text-transform:uppercase;letter-spacing:1px;font-family:'Cinzel',serif}
+.tb-val{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;margin:3px 0;color:var(--texte)}
+.pb-wrap{background:rgba(0,0,0,.4);border-radius:999px;height:6px;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+.pb{height:100%;border-radius:999px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* BADGE VAINQUEUR */
+.gagnant{
+  text-align:center;padding:10px;margin-top:10px;
+  background:linear-gradient(90deg,#5a3e0a,#c9a84c,#f0d060,#c9a84c,#5a3e0a);
+  border-radius:8px;
+  font-family:'Cinzel',serif;font-size:1rem;font-weight:700;
+  color:#0a0a0a;letter-spacing:2px;text-transform:uppercase;
+  animation:sh 2s ease infinite;
+  box-shadow:0 0 20px rgba(201,168,76,.4);
+  border:1px solid var(--or-clair);
+}
+@keyframes sh{0%,100%{box-shadow:0 0 20px rgba(201,168,76,.4)}50%{box-shadow:0 0 35px rgba(201,168,76,.7)}}
+
+.add-btn{
+  background:rgba(0,0,0,.3);
+  border:1px dashed rgba(201,168,76,.4);
+  color:var(--or-dim);border-radius:6px;padding:5px 14px;
+  cursor:pointer;font-family:'Crimson Text',serif;font-size:.85rem;
+  margin-top:8px;transition:all .2s;
+}
+.add-btn:hover{background:rgba(201,168,76,.08);color:var(--or);border-color:var(--or)}
+.round-actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+
+/* CLASSEMENT */
+.ct{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);margin-top:10px}
+.ct thead tr{background:linear-gradient(90deg,#0a0a0a,#1a1a1a,#0a0a0a);border-bottom:2px solid var(--or)}
+.ct th{padding:10px 6px;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:1px;text-transform:uppercase;text-align:center;color:var(--or)}
+.ct th:nth-child(2){text-align:left;padding-left:12px}
+.ct td{padding:10px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,.05);font-size:.9rem;color:var(--texte)}
+.ct td:nth-child(2){text-align:left;padding-left:12px}
+.ct tbody tr{background:rgba(15,58,26,.6);transition:background .15s}
+.ct tbody tr:nth-child(even){background:rgba(10,40,18,.6)}
+.ct tbody tr:hover{background:rgba(201,168,76,.08)}
+.ct tbody tr:last-child td{border-bottom:none}
+.rb{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;border-radius:50%;font-family:'Cinzel',serif;font-weight:700;font-size:.75rem;border:1px solid rgba(255,255,255,.1)}
+.r1{background:linear-gradient(135deg,#b8860b,#FFD700);color:#111;border-color:#FFD700}
+.r2{background:linear-gradient(135deg,#888,#C0C0C0);color:#111;border-color:#C0C0C0}
+.r3{background:linear-gradient(135deg,#7d4a1a,#CD7F32);color:white;border-color:#CD7F32}
+.rx{background:rgba(255,255,255,.08);color:rgba(255,255,255,.5)}
+.pb2{display:inline-block;background:linear-gradient(135deg,#8a0000,#c0392b);color:var(--or-clair);border-radius:5px;padding:2px 9px;font-weight:700;font-size:.85rem;font-family:'Cinzel',serif;border:1px solid rgba(201,168,76,.3)}
+.at{display:inline-block;border-radius:3px;padding:0 4px;margin:1px;font-size:.67rem}
+.av{background:rgba(46,204,113,.15);color:#2ecc71;border:1px solid rgba(46,204,113,.2)}
+.ad{background:rgba(231,76,60,.12);color:#e74c3c;border:1px solid rgba(231,76,60,.2)}
+
+.br{display:inline-block;background:linear-gradient(135deg,#8a6f2e,#c9a84c);color:#0a0a0a;border-radius:999px;padding:1px 10px;font-size:.7rem;font-weight:700;font-family:'Cinzel',serif;border:1px solid var(--or-clair)}
+.empty{text-align:center;padding:40px 20px;color:rgba(255,255,255,.3);font-style:italic}
+
+/* PRINT */
+@media print{
+  header,.tabs,.round-actions,.add-btn,.no-print{display:none!important}
+  body{background:white;color:#000}
+  .page{display:none!important}
+  #page-classement{display:block!important;padding:10px}
+  .ct{box-shadow:none;border:1px solid #ccc}
+  .ct td,.ct th{color:#000!important}
+  .ct tbody tr{background:white!important}
+  .ct tbody tr:nth-child(even){background:#f5f5f5!important}
+  .print-title{display:block!important}
+}
+.print-title{display:none;text-align:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #c9a84c}
+.print-title h2{font-family:'Cinzel',serif;font-size:1.6rem;color:#8B1A1A}
+.print-title p{color:#666;font-size:.9rem;margin-top:4px}
+</style>
+</head>
+<body>
+<!-- ÉCRAN DE CONNEXION -->
+<div id="login-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(160deg,#0e3818 0%,#0a0a0a 60%,#1a0000 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:30px 24px;
+">
+  <div style="text-align:center;margin-bottom:32px">
+    <div style="font-size:2.5rem;margin-bottom:8px">🃏</div>
+    <div style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:900;
+      background:linear-gradient(180deg,#f5e070,#c9a84c,#8a6f2e);
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+      letter-spacing:3px;margin-bottom:4px">
+      BELOTE
+    </div>
+    <div style="font-family:'Cinzel',serif;font-size:.85rem;color:#c9a84c;letter-spacing:2px">
+      AMICI ROOST WARENDIN
+    </div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.3);margin-top:6px;font-style:italic">
+      Créé par Willy
+    </div>
+  </div>
+
+  <div style="width:100%;max-width:320px;background:rgba(0,0,0,.5);
+    border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:24px;
+    box-shadow:0 8px 32px rgba(0,0,0,.6)">
+    <div style="font-family:'Cinzel',serif;font-size:.8rem;color:var(--or);
+      letter-spacing:2px;text-align:center;margin-bottom:16px">
+      🔒 ACCÈS SÉCURISÉ
+    </div>
+    <input id="login-input" type="text"
+      inputmode="text"
+      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+      placeholder="Code d'accès"
+      style="width:100%;border:1.5px solid rgba(201,168,76,.4);border-radius:8px;
+        padding:16px;font-family:'Crimson Text',serif;font-size:1.2rem;
+        background:rgba(0,0,0,.6);color:white;outline:none;
+        text-align:center;margin-bottom:14px;
+        box-sizing:border-box;display:block;-webkit-user-select:text;user-select:text;"
+      onkeydown="if(event.key==='Enter')verifierCode()"
+    >
+    <div id="login-error" style="color:#e74c3c;font-size:.82rem;text-align:center;
+      margin-bottom:12px;display:none;font-style:italic">
+      ❌ Code incorrect, réessaie.
+    </div>
+    <button onclick="verifierCode()" style="width:100%;margin-bottom:8px;
+      background:linear-gradient(135deg,#8a6f2e,#c9a84c,#8a6f2e);
+      color:#0a0a0a;border:1px solid var(--or-clair);border-radius:8px;
+      padding:15px;font-family:'Cinzel',serif;font-size:.9rem;font-weight:700;
+      letter-spacing:2px;cursor:pointer;transition:all .2s;min-height:52px">
+      ▶ ENTRER
+    </button>
+  </div>
+
+  <div style="margin-top:24px;display:flex;gap:8px;align-items:center">
+    <span style="font-size:.6rem;color:rgba(255,255,255,.2)">♠</span>
+    <span style="font-size:.6rem;color:rgba(255,255,255,.15)">Tournoi · 1001 points · Système Swiss</span>
+    <span style="font-size:.6rem;color:rgba(255,255,255,.2)">♥</span>
+  </div>
+</div>
+
+<!-- APP PRINCIPALE (cachée jusqu'à connexion) -->
+<div id="main-app" style="display:none">
+
+<!-- BANDEAU MODE (admin ou spectateur) -->
+<div id="bandeau-mode" style="
+  display:none;
+  position:sticky;top:0;z-index:600;
+  padding:7px 16px;
+  align-items:center;justify-content:space-between;
+  font-family:'Cinzel',serif;font-size:.72rem;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+">
+  <span id="bandeau-icone">👁</span>
+  <span id="bandeau-texte">Mode Spectateur</span>
+  <span id="sync-dot" style="font-size:.6rem;color:rgba(255,255,255,.5)">⚡</span>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="header-suits"><span class="s">♠</span><span class="h">♥</span><span class="d">♦</span><span class="c">♣</span></div>
+    <h1>Belote Amici<br>Roost Warendin</h1>
+    <p id="header-sub" style="font-size:.78rem;margin-top:4px;opacity:.7">5 rondes · Premier à 1001 points</p>
+    <p style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:3px;font-style:italic">Créé par Willy</p>
+  </div>
+</header>
+<div class="tabs no-print">
+  <div class="tab active" onclick="showPage('setup')">⚙ Équipes</div>
+  <div class="tab" onclick="showPage('matchs')">🎴 Matchs</div>
+  <div class="tab" onclick="showPage('classement')">🏆 Classement</div>
+  <div class="tab" onclick="showPage('historique')">📋 Historique</div>
+</div>
+
+<div id="page-setup" class="page active">
+  <div class="info-box" style="margin-bottom:16px">
+    <strong>Comment ça marche :</strong> Ajoute entre 4 et 40 joueurs (nombre pair), tire les équipes au sort, puis démarre. Chaque match se joue jusqu'à <strong>1 001 points</strong>. Système <strong>Swiss sur 5 rondes</strong>. Victoire = <strong>2 pts</strong> · Défaite = <strong>0 pt</strong>.
+  </div>
+  <!-- Sélecteur nombre de rondes -->
+  <div style="margin-bottom:18px">
+    <div class="section-title">① Nombre de rondes</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div style="color:var(--texte2);font-size:.92rem;margin-right:4px">Choisir :</div>
+      <button class="btn-round active" id="btn-r3" onclick="setRondes(3)">3 rondes</button>
+      <button class="btn-round" id="btn-r4" onclick="setRondes(4)">4 rondes</button>
+      <button class="btn-round" id="btn-r5" onclick="setRondes(5)">5 rondes</button>
+      <button class="btn-round" id="btn-r6" onclick="setRondes(6)">6 rondes</button>
+      <button class="btn-round" id="btn-r7" onclick="setRondes(7)">7 rondes</button>
+      <button class="btn-round" id="btn-r8" onclick="setRondes(8)">8 rondes</button>
+    </div>
+    <div style="margin-top:8px;font-size:.8rem;color:var(--texte3);font-style:italic" id="info-rondes">
+      5 rondes sélectionnées
+    </div>
+  </div>
+
+  <div id="step-joueurs">
+    <div class="section-title">② Joueurs <span id="compteur-joueurs" style="font-size:.85rem;color:#888;font-family:'Crimson Text',serif;font-weight:400;margin-left:6px"></span></div>
+    <div class="joueurs-grid" id="joueurs-grid"></div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn sec" onclick="ajouterJoueur()">+ Ajouter un joueur</button>
+      <button class="btn sec" onclick="supprimerJoueur()">− Supprimer le dernier</button>
+      <button class="btn sec" onclick="remplirExemple()">🎲 Noms exemples</button>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn or" onclick="tirerEquipes()">🔀 Tirage au sort des équipes</button>
+      <button class="btn bleu" onclick="choixManuel()">✋ Choisir les équipes manuellement</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE TIRAGE AU SORT -->
+  <div id="step-equipes" style="display:none">
+    <div class="section-title">③ Équipes — Tirage au sort</div>
+    <div class="setup-grid" id="equipes-grid"></div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn sec" onclick="tirerEquipes()">🔀 Nouveau tirage</button>
+      <button class="btn sec" onclick="retourJoueurs()">✏ Modifier les joueurs</button>
+      <button class="btn vert" onclick="demarrerTournoi()">▶ Démarrer le tournoi</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE CHOIX MANUEL -->
+  <div id="step-manuel" style="display:none">
+    <div class="section-title">③ Équipes — Choix manuel</div>
+    <div style="font-size:.82rem;color:var(--texte3);font-style:italic;margin-bottom:12px">
+      Pour chaque équipe, sélectionne les deux joueurs dans les listes.
+    </div>
+    <div id="equipes-manuel"></div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn sec" onclick="retourJoueurs()">✏ Modifier les joueurs</button>
+      <button class="btn vert" onclick="validerManuel()">✔ Valider les équipes</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE CONFIRMATION ÉQUIPES MANUELLES -->
+  <div id="step-equipes-manuel" style="display:none">
+    <div class="section-title">③ Équipes confirmées</div>
+    <div class="setup-grid" id="equipes-grid-manuel"></div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn sec" onclick="retourChoixManuel()">✏ Modifier</button>
+      <button class="btn sec" onclick="retourJoueurs()">↩ Changer de joueurs</button>
+      <button class="btn vert" onclick="demarrerTournoi()">▶ Démarrer le tournoi</button>
+    </div>
+  </div>
+</div>
+
+<div id="page-matchs" class="page">
+  <div class="section-title">🎴 Rondes &amp; Manches</div>
+  <div id="spectateur-banner" style="display:none"></div>
+  <div id="matchs-container"></div>
+</div>
+
+<div id="page-classement" class="page">
+  <div class="print-title">
+    <h2>🃏 Belote Amici Roost Warendin — Classement</h2>
+    <p id="print-date"></p>
+  </div>
+  <div class="section-title no-print">🏆 Classement général</div>
+  <div id="classement-container"></div>
+</div>
+
+<div id="page-historique" class="page">
+  <div class="section-title">📋 Historique des rencontres</div>
+  <div id="historique-container"></div>
+</div>
+
+<script>
+let NB_RONDES=5;const OBJECTIF=1001;
+
+function setRondes(n){
+  if(!adminSeulement('setRondes')) return;
+  NB_RONDES=n;
+  // Mettre à jour boutons actifs
+  [3,4,5,6,7,8].forEach(i=>{
+    const btn=document.getElementById('btn-r'+i);
+    if(btn) btn.className='btn-round'+(i===n?' active':'');
+  });
+  // Mettre à jour texte info
+  const info=document.getElementById('info-rondes');
+  if(info) info.textContent=n+' ronde'+(n>1?'s':'')+' sélectionnée'+(n>1?'s':'');
+  updateHeaderSub();
+}
+let joueurs=Array.from({length:24},(_,i)=>({id:i,nom:''}));
+const MIN_J=4,MAX_J=40;
+let equipes=[],rondes=[],rondeActive=0,tournoiDemarre=false;
+
+// ── SAUVEGARDE (définie tôt pour être disponible partout) ──
+function sauvegarder(){
+  try{
+    localStorage.setItem('belote_joueurs',JSON.stringify(joueurs));
+    if(tournoiDemarre){
+      localStorage.setItem('belote_etat',JSON.stringify({equipes,rondes,rondeActive,tournoiDemarre}));
+    }
+  }catch(e){}
+  syncFirebase();
+}
+function restaurer(){
+  try{
+    const j=localStorage.getItem('belote_joueurs');
+    if(j){joueurs=JSON.parse(j);joueurs.forEach((x,i)=>x.id=i);}
+    const e=localStorage.getItem('belote_etat');
+    if(e){const d=JSON.parse(e);equipes=d.equipes||[];rondes=d.rondes||[];rondeActive=d.rondeActive||0;tournoiDemarre=d.tournoiDemarre||false;}
+  }catch(e){}
+}
+
+const NOMS_EX=['Dupont','Martin','Leclerc','Moreau','Bernard','Thomas','Simon','Laurent','Michel','Garcia','Lefebvre','Roux','David','Bertrand','Morel','Fournier','Girard','Bonnet','Durand','Lambert','Fontaine','Rousseau','Vincent','Muller'];
+
+function initJoueurs(){
+  renderJoueurs();
+  updateHeaderSub();
+}
+
+function renderJoueurs(){
+  const n=joueurs.length;
+  const el=document.getElementById('compteur-joueurs');
+  if(el)el.textContent=`(${n} joueurs · ${n/2} équipes)`;
+  document.getElementById('joueurs-grid').innerHTML=joueurs.map(j=>`
+    <div class="joueur-card">
+      <div class="joueur-num">${j.id+1}</div>
+      <input placeholder="Nom joueur ${j.id+1}" value="${j.nom}" oninput="joueurs[${j.id}].nom=this.value.trim()">
+    </div>`).join('');
+  updateHeaderSub();
+}
+
+function updateHeaderSub(){
+  const n=joueurs.length;
+  const s=document.getElementById('header-sub');
+  if(s)s.textContent=`${n} joueurs · ${n/2} équipes · ${NB_RONDES} rondes · Premier à 1001 points`;
+}
+
+function ajouterJoueur(){
+  if(!adminSeulement('ajouterJoueur')) return;
+  if(joueurs.length>=MAX_J){alert(`Maximum ${MAX_J} joueurs atteint.`);return;}
+  // Ajouter 2 joueurs (toujours pair)
+  const n=joueurs.length;
+  joueurs.push({id:n,nom:''},{id:n+1,nom:''});
+  joueurs.forEach((j,i)=>j.id=i);
+  renderJoueurs();
+}
+
+function supprimerJoueur(){
+  if(!adminSeulement('supprimerJoueur')) return;
+  if(joueurs.length<=MIN_J){alert(`Minimum ${MIN_J} joueurs requis.`);return;}
+  // Supprimer 2 joueurs (toujours pair)
+  joueurs.splice(joueurs.length-2,2);
+  joueurs.forEach((j,i)=>j.id=i);
+  renderJoueurs();
+}
+
+function remplirExemple(){
+  if(!adminSeulement('remplirExemple')) return;
+  const s=[...NOMS_EX].sort(()=>Math.random()-.5);
+  joueurs.forEach((j,i)=>j.nom=s[i]||`Joueur ${i+1}`);
+  renderJoueurs();
+}
+
+function retourJoueurs(){
+  if(!adminSeulement('retourJoueurs')) return;
+  masquerEtapes();
+  document.getElementById('step-joueurs').style.display='';
+}
+
+function verifierJoueurs(){
+  const manquants=joueurs.filter(j=>!j.nom);
+  if(manquants.length>0){
+    alert(`Il manque ${manquants.length} nom(s) ! Joueur(s) : ${manquants.map(j=>j.id+1).join(', ')}`);
+    return false;
+  }
+  return true;
+}
+
+function masquerEtapes(){
+  ['step-joueurs','step-equipes','step-manuel','step-equipes-manuel'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+}
+
+function tirerEquipes(){
+  if(!adminSeulement('tirerEquipes')) return;
+  if(!verifierJoueurs()) return;
+  const melanges=[...joueurs].sort(()=>Math.random()-.5);
+  const nbEq=joueurs.length/2;
+  equipes=Array.from({length:nbEq},(_,i)=>({id:i,j1:melanges[2*i].nom,j2:melanges[2*i+1].nom}));
+  renderEquipesTirees();
+  masquerEtapes();
+  document.getElementById('step-equipes').style.display='';
+}
+
+function renderEquipesTirees(){
+  const grid=document.getElementById('equipes-grid');
+  if(!grid) return;
+  grid.innerHTML=equipes.map(e=>`
+    <div class="equipe-card">
+      <div class="equipe-num">${e.id+1}</div>
+      <div class="equipe-inputs">
+        <div class="eq-display">🂡 ${e.j1}</div>
+        <div class="eq-display">🂡 ${e.j2}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── CHOIX MANUEL ──
+function choixManuel(){
+  if(!adminSeulement('choixManuel')) return;
+  if(!verifierJoueurs()) return;
+  masquerEtapes();
+  document.getElementById('step-manuel').style.display='';
+  renderChoixManuel();
+}
+
+function renderChoixManuel(){
+  const nbEq=joueurs.length/2;
+  const container=document.getElementById('equipes-manuel');
+  let html='';
+  for(let i=0;i<nbEq;i++){
+    const opts=joueurs.map(j=>`<option value="${j.nom}">${j.nom}</option>`).join('');
+    html+=`<div class="equipe-card" style="margin-bottom:10px;flex-direction:column;align-items:stretch;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div class="equipe-num">${i+1}</div>
+        <div style="font-family:'Cinzel',serif;font-size:.8rem;color:var(--or);letter-spacing:1px">ÉQUIPE ${i+1}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:.68rem;color:var(--texte3);margin-bottom:3px;font-family:'Cinzel',serif">JOUEUR 1</div>
+          <select id="eq${i}_j1" class="eq-select" onchange="verifierDoublons()">
+            <option value="">— Choisir —</option>${opts}
+          </select>
+        </div>
+        <div>
+          <div style="font-size:.68rem;color:var(--texte3);margin-bottom:3px;font-family:'Cinzel',serif">JOUEUR 2</div>
+          <select id="eq${i}_j2" class="eq-select" onchange="verifierDoublons()">
+            <option value="">— Choisir —</option>${opts}
+          </select>
+        </div>
+      </div>
+    </div>`;
+  }
+  container.innerHTML=html;
+}
+
+function verifierDoublons(){
+  const nbEq=joueurs.length/2;
+  const choisis=[];
+  const doublons=new Set();
+  for(let i=0;i<nbEq;i++){
+    const s1=document.getElementById(`eq${i}_j1`);
+    const s2=document.getElementById(`eq${i}_j2`);
+    if(s1&&s1.value){
+      if(choisis.includes(s1.value)) doublons.add(s1.value);
+      else choisis.push(s1.value);
+    }
+    if(s2&&s2.value){
+      if(choisis.includes(s2.value)) doublons.add(s2.value);
+      else choisis.push(s2.value);
+    }
+  }
+  // Mettre en rouge les selects en doublon
+  for(let i=0;i<nbEq;i++){
+    ['j1','j2'].forEach(j=>{
+      const sel=document.getElementById(`eq${i}_${j}`);
+      if(sel) sel.style.borderColor=doublons.has(sel.value)&&sel.value?'#e74c3c':'rgba(201,168,76,.3)';
+    });
+  }
+}
+
+function validerManuel(){
+  if(!adminSeulement('validerManuel')) return;
+  const nbEq=joueurs.length/2;
+  const choisis=[];
+  const newEquipes=[];
+  for(let i=0;i<nbEq;i++){
+    const j1=document.getElementById(`eq${i}_j1`)?.value;
+    const j2=document.getElementById(`eq${i}_j2`)?.value;
+    if(!j1||!j2){alert(`Équipe ${i+1} incomplète !`);return;}
+    if(j1===j2){alert(`Équipe ${i+1} : les deux joueurs sont identiques !`);return;}
+    if(choisis.includes(j1)){alert(`"${j1}" est sélectionné dans plusieurs équipes !`);return;}
+    if(choisis.includes(j2)){alert(`"${j2}" est sélectionné dans plusieurs équipes !`);return;}
+    choisis.push(j1,j2);
+    newEquipes.push({id:i,j1,j2});
+  }
+  equipes=newEquipes;
+  renderEquipesManuel();
+  masquerEtapes();
+  document.getElementById('step-equipes-manuel').style.display='';
+}
+
+function renderEquipesManuel(){
+  const grid=document.getElementById('equipes-grid-manuel');
+  if(!grid) return;
+  grid.innerHTML=equipes.map(e=>`
+    <div class="equipe-card">
+      <div class="equipe-num">${e.id+1}</div>
+      <div class="equipe-inputs">
+        <div class="eq-display">🂡 ${e.j1}</div>
+        <div class="eq-display">🂡 ${e.j2}</div>
+      </div>
+    </div>`).join('');
+}
+
+function retourChoixManuel(){
+  if(!adminSeulement('retourChoixManuel')) return;
+  masquerEtapes();
+  document.getElementById('step-manuel').style.display='';
+}
+
+function demarrerTournoi(){
+  if(!adminSeulement('demarrerTournoi')) return;
+  if(tournoiDemarre&&!confirm('Recommencer ? Les scores seront perdus.')) return;
+  rondes=[];rondeActive=0;tournoiDemarre=true;
+  genererRonde();showPage('matchs');
+  setTimeout(sauvegarder, 100);
+}
+
+function getStats(avantRonde){
+  const s=equipes.map(e=>({id:e.id,pts:0,totalBelote:0,v:0,d:0,joues:0,adversaires:[]})); // dynamic
+  for(let r=0;r<avantRonde&&r<rondes.length;r++){
+    rondes[r].forEach(m=>{
+      if(!m.valide) return;
+      const t1=totalMatch(m,1),t2=totalMatch(m,2);
+      const s1=s[m.eq1],s2=s[m.eq2];
+      s1.totalBelote+=t1;s2.totalBelote+=t2;s1.joues++;s2.joues++;
+      if(m.gagnant===m.eq1){s1.pts+=2;s1.v++;s2.d++;s1.adversaires.push({id:m.eq2,res:'v'});s2.adversaires.push({id:m.eq1,res:'d'});}
+      else if(m.gagnant===m.eq2){s2.pts+=2;s2.v++;s1.d++;s1.adversaires.push({id:m.eq2,res:'d'});s2.adversaires.push({id:m.eq1,res:'v'});}
+      // Pas de nul possible à la belote
+    });
+  }
+  return s;
+}
+
+function genererRonde(){
+  const cl=[...getStats(rondeActive)].sort((a,b)=>b.pts-a.pts||b.totalBelote-a.totalBelote);
+  const deja=new Set();
+  rondes.forEach(r=>r.forEach(m=>deja.add(`${Math.min(m.eq1,m.eq2)}-${Math.max(m.eq1,m.eq2)}`)));
+  let pool=[...cl];const matchs=[];
+  while(pool.length>=2){
+    const e1=pool.shift();
+    let idx=pool.findIndex(e2=>!deja.has(`${Math.min(e1.id,e2.id)}-${Math.max(e1.id,e2.id)}`));
+    if(idx===-1)idx=0;
+    const e2=pool.splice(idx,1)[0];
+    matchs.push({eq1:e1.id,eq2:e2.id,manches:[{s1:'',s2:''}],valide:false,gagnant:null});
+  }
+  rondes.push(matchs);
+}
+
+function totalMatch(m,eq){return m.manches.reduce((a,mn)=>a+(parseInt(eq===1?mn.s1:mn.s2)||0),0);}
+function trouverGagnant(m){
+  const t1=totalMatch(m,1),t2=totalMatch(m,2);
+  const both1=(t1>=OBJECTIF),both2=(t2>=OBJECTIF);
+  if(both1&&both2){
+    // Les deux ont dépassé 1001 dans la même manche : le plus de points gagne
+    return t1>t2?m.eq1:m.eq2;
+  }
+  if(both1)return m.eq1;
+  if(both2)return m.eq2;
+  return null;
+}
+
+function getAdv(eqId){
+  const adv=[];
+  rondes.forEach(r=>r.forEach(m=>{if(m.eq1===eqId)adv.push(m.eq2);if(m.eq2===eqId)adv.push(m.eq1);}));
+  return adv;
+}
+
+// ── SAISIE TEMPS RÉEL ──
+function setManche(ri,mi,mni,eq,val){
+  if(!adminSeulement('setManche')) return;
+  rondes[ri][mi].manches[mni][eq===1?'s1':'s2']=val;
+  const m=rondes[ri][mi];
+  const t1=totalMatch(m,1),t2=totalMatch(m,2);
+  // Auto-ajouter manche si la dernière est complète et 1001 pas encore atteint
+  if(t1<OBJECTIF&&t2<OBJECTIF){
+    const last=m.manches[m.manches.length-1];
+    if(last.s1!==''&&last.s2!==''&&!isNaN(parseInt(last.s1))&&!isNaN(parseInt(last.s2))){
+      m.manches.push({s1:'',s2:''});
+    }
+  }
+  renderMatchs();
+}
+
+function addManche(ri,mi){
+  if(!adminSeulement('addManche')) return;
+  rondes[ri][mi].manches.push({s1:'',s2:''});renderMatchs();}
+
+function validerRonde(ri){
+  if(!adminSeulement('validerRonde')) return;
+  const ronde=rondes[ri];
+  for(const m of ronde){
+    // Nettoyer manches vides de fin
+    let c1=0,c2=0;
+    m.manches=m.manches.filter(mn=>{
+      if(c1>=OBJECTIF||c2>=OBJECTIF)return false;
+      c1+=parseInt(mn.s1)||0;c2+=parseInt(mn.s2)||0;
+      return true;
+    });
+    for(const mn of m.manches){
+      if(mn.s1===''||mn.s2===''||isNaN(parseInt(mn.s1))||isNaN(parseInt(mn.s2))){
+        alert(`Scores incomplets : ${equipes[m.eq1].j1} vs ${equipes[m.eq2].j1}`);return;
+      }
+    }
+    m.gagnant=trouverGagnant(m);m.valide=true;
+  }
+  rondeActive++;
+  if(rondeActive<NB_RONDES)genererRonde();
+  renderMatchs();renderClassement();renderHistorique();
+}
+
+function devaliderRonde(ri){
+  if(!adminSeulement('devaliderRonde')) return;
+  if(ri<rondes.length-1)rondes.splice(ri+1);
+  rondes[ri].forEach(m=>{m.valide=false;m.gagnant=null;});
+  rondeActive=ri;renderMatchs();renderClassement();
+}
+
+// ── RENDER MATCHS ──
+function renderMatchs(){
+  const c=document.getElementById('matchs-container');
+  if(!tournoiDemarre){c.innerHTML='<div class="empty">Configure les équipes puis démarre le tournoi.</div>';return;}
+  let html='';
+  rondes.forEach((ronde,ri)=>{
+    const estActive=ri===rondeActive;
+    const tousValides=ronde.every(m=>m.valide);
+    html+=`<div class="round-header"><span>Ronde ${ri+1} <span class="br">sur ${NB_RONDES}</span></span><span style="font-size:.78rem;opacity:.7">${equipes.length} équipes</span>${tousValides?'<span style="font-size:.78rem">✔ Validée</span>':''}</div>`;
+
+    ronde.forEach((m,mi)=>{
+      const e1=equipes[m.eq1],e2=equipes[m.eq2];
+      const t1=totalMatch(m,1),t2=totalMatch(m,2);
+      const pct1=Math.min(100,Math.round(t1/OBJECTIF*100));
+      const pct2=Math.min(100,Math.round(t2/OBJECTIF*100));
+      const gagnant=trouverGagnant(m);
+      const locked=m.valide;
+      const advE1=getAdv(m.eq1).filter(id=>id!==m.eq2);
+      const advE2=getAdv(m.eq2).filter(id=>id!==m.eq1);
+
+      html+=`<div class="match-bloc">
+        <div class="match-equipes">
+          <div><div class="eq-name">${e1.j1}</div><div class="eq-sub">${e1.j2}</div></div>
+          <div class="vs-badge">VS</div>
+          <div style="text-align:right"><div class="eq-name r">${e2.j1}</div><div class="eq-sub r">${e2.j2}</div></div>
+        </div>`;
+
+      // Adversaires déjà rencontrés
+      if(advE1.length||advE2.length){
+        html+=`<div class="deja-bloc">
+          <div>Déjà affrontés&nbsp;: ${advE1.length?advE1.map(id=>`<span class="pill">${equipes[id].j1}</span>`).join(''):'—'}</div>
+          <div style="text-align:right">Déjà affrontés&nbsp;: ${advE2.length?advE2.map(id=>`<span class="pill">${equipes[id].j1}</span>`).join(''):'—'}</div>
+        </div>`;
+      }
+
+      // Tableau manches avec cumul temps réel
+      let cum1=0,cum2=0;
+      const n1=e1.j1.split(' ')[0].substring(0,6);
+      const n2=e2.j1.split(' ')[0].substring(0,6);
+      html+=`<table class="mt">
+        <colgroup>
+          <col class="c-manche"><col class="c-score"><col class="c-cum"><col class="c-score"><col class="c-cum">
+        </colgroup>
+        <thead><tr>
+          <th>M.</th>
+          <th>${n1}</th><th>≡</th>
+          <th>${n2}</th><th>≡</th>
+        </tr></thead><tbody>`;
+
+      m.manches.forEach((mn,mni)=>{
+        const s1v=parseInt(mn.s1)||0,s2v=parseInt(mn.s2)||0;
+        cum1+=s1v;cum2+=s2v;
+        const done=(cum1>=OBJECTIF||cum2>=OBJECTIF)?'done':'';
+        html+=`<tr class="${done}">
+          <td>M${mni+1}</td>
+          <td><input type="number" min="0" max="250" placeholder="0" value="${mn.s1}" ${locked?'disabled':''}
+            onchange="setManche(${ri},${mi},${mni},1,this.value)"></td>
+          <td class="cum" style="color:${cum1>=OBJECTIF?'var(--vert)':'#bbb'};font-weight:${cum1>=OBJECTIF?700:400}">${cum1}</td>
+          <td><input type="number" min="0" max="250" placeholder="0" value="${mn.s2}" ${locked?'disabled':''}
+            onchange="setManche(${ri},${mi},${mni},2,this.value)"></td>
+          <td class="cum" style="color:${cum2>=OBJECTIF?'var(--vert)':'#bbb'};font-weight:${cum2>=OBJECTIF?700:400}">${cum2}</td>
+        </tr>`;
+      });
+      html+=`</tbody></table>`;
+
+      if(!locked&&!gagnant) html+=`<button class="add-btn" onclick="addManche(${ri},${mi})">+ Ajouter une manche</button>`;
+
+      html+=`<div class="totaux">
+        <div class="tb">
+          <div class="tb-label">${e1.j1}</div>
+          <div class="tb-val" style="color:${t1>=OBJECTIF?'var(--vert)':'var(--texte)'}">${t1} pts</div>
+          <div class="pb-wrap"><div class="pb" style="width:${pct1}%;background:${t1>=OBJECTIF?'var(--vert)':'var(--or)'}"></div></div>
+          <div style="font-size:.7rem;color:#aaa;margin-top:2px">${pct1}% vers 1001</div>
+        </div>
+        <div class="tb">
+          <div class="tb-label">${e2.j1}</div>
+          <div class="tb-val" style="color:${t2>=OBJECTIF?'var(--vert)':'var(--texte)'}">${t2} pts</div>
+          <div class="pb-wrap"><div class="pb" style="width:${pct2}%;background:${t2>=OBJECTIF?'var(--vert)':'var(--or)'}"></div></div>
+          <div style="font-size:.7rem;color:#aaa;margin-top:2px">${pct2}% vers 1001</div>
+        </div>
+      </div>
+      ${gagnant!==null&&!locked?`<div class="gagnant">🏆 ${equipes[gagnant].j1} / ${equipes[gagnant].j2} atteignent 1001 pts !</div>`:''}
+      ${locked&&gagnant!==null?`<div class="gagnant">🏆 Vainqueur : ${equipes[gagnant].j1} / ${equipes[gagnant].j2}</div>`:''}
+      </div>`;
+    });
+
+    if(estActive && modeAdmin){
+      html+=`<div class="round-actions">
+        <button class="btn vert" onclick="validerRonde(${ri})">✔ Valider la ronde ${ri+1}</button>
+        ${ri>0?`<button class="btn sec" onclick="devaliderRonde(${ri})">✏ Modifier</button>`:''}
+      </div>`;
+    }
+  });
+  c.innerHTML=html;
+  if(typeof modeAdmin !== 'undefined' && !modeAdmin) setTimeout(verrouillerSaisie, 100);
+}
+
+// ── CLASSEMENT ──
+function renderClassement(){
+  const c=document.getElementById('classement-container');
+  if(!tournoiDemarre){c.innerHTML='<div class="empty">Le tournoi n\'a pas encore commencé.</div>';return;}
+  const stats=getStats(rondes.length).sort((a,b)=>b.pts-a.pts||b.totalBelote-a.totalBelote);
+  const rondeFaite=rondes.filter(r=>r.every(m=>m.valide)).length;
+
+  let html=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px" class="no-print">
+    <div class="info-box" style="flex:1">Rondes jouées : <strong>${rondeFaite} / ${NB_RONDES}</strong>${rondeFaite===NB_RONDES?'&nbsp;·&nbsp;<strong style="color:var(--rouge)">🏆 Tournoi terminé !</strong>':''}</div>
+    <button class="btn bleu" onclick="exportPDF()">🖨 Imprimer / PDF</button>
+  </div>
+  <table class="ct"><thead><tr>
+    <th>#</th><th>Équipe</th><th>J</th><th>V</th><th>D</th><th>Pts</th><th>Total</th><th>Adversaires</th>
+  </tr></thead><tbody>`;
+
+  stats.forEach((s,i)=>{
+    const rc=i===0?'r1':i===1?'r2':i===2?'r3':'rx';
+    const eq=equipes[s.id];
+    const tags=s.adversaires.map(a=>`<span class="at ${a.res==='v'?'av':'ad'}">${equipes[a.id].j1.split(' ')[0]} ${a.res==='v'?'✔':'✘'}</span>`).join('');
+    html+=`<tr>
+      <td><span class="rb ${rc}">${i+1}</span></td>
+      <td><strong>${eq.j1}</strong><br><span style="font-size:.78rem;color:#888">${eq.j2}</span></td>
+      <td>${s.joues}</td>
+      <td style="color:#27ae60;font-weight:600">${s.v}</td>
+      <td style="color:#e74c3c">${s.d}</td>
+      <td><span class="pb2">${s.pts}</span></td>
+      <td style="color:#888;font-size:.85rem">${s.totalBelote}</td>
+      <td style="font-size:.75rem">${tags||'—'}</td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  c.innerHTML=html;
+}
+
+// ── EXPORT PDF ──
+function exportPDF(){
+  document.getElementById('print-date').textContent='Généré le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  document.getElementById('page-classement').style.display='block';
+  window.print();
+  setTimeout(()=>{document.querySelectorAll('.page').forEach(p=>p.style.display='');showPage('classement');},500);
+}
+
+// ── HISTORIQUE ──
+function renderHistorique(){
+  const c=document.getElementById('historique-container');
+  if(!tournoiDemarre||rondes.length===0){c.innerHTML='<div class="empty">Aucune ronde jouée.</div>';return;}
+  let html='';
+  rondes.forEach((ronde,ri)=>{
+    const valides=ronde.filter(m=>m.valide);
+    if(!valides.length)return;
+    html+=`<div class="round-header" style="border-radius:10px;margin-top:14px">Ronde ${ri+1}</div>`;
+    html+='<div style="background:white;border:1.5px solid var(--fond2);border-top:none;border-radius:0 0 10px 10px">';
+    valides.forEach(m=>{
+      const e1=equipes[m.eq1],e2=equipes[m.eq2];
+      const t1=totalMatch(m,1),t2=totalMatch(m,2);
+      const nbM=m.manches.length;
+      const c1=m.gagnant===m.eq1?'#27ae60':m.gagnant===m.eq2?'#e74c3c':'#888';
+      const c2=m.gagnant===m.eq2?'#27ae60':m.gagnant===m.eq1?'#e74c3c':'#888';
+      html+=`<div style="padding:10px 16px;border-bottom:1px solid var(--fond2)">
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center">
+          <div><strong>${e1.j1}</strong><br><span style="font-size:.75rem;color:#888">${e1.j2}</span></div>
+          <div style="text-align:center">
+            <div style="font-size:1.1rem;font-weight:700"><span style="color:${c1}">${t1}</span> – <span style="color:${c2}">${t2}</span></div>
+            <div style="font-size:.72rem;color:#aaa">${nbM} manche${nbM>1?'s':''}</div>
+          </div>
+          <div style="text-align:right"><strong>${e2.j1}</strong><br><span style="font-size:.75rem;color:#888">${e2.j2}</span></div>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">
+          ${m.manches.map((mn,i)=>`<span style="font-size:.72rem;background:var(--fond2);border-radius:4px;padding:1px 6px;color:#555">M${i+1}: ${mn.s1||0}–${mn.s2||0}</span>`).join('')}
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  c.innerHTML=html||'<div class="empty">Aucun résultat encore saisi.</div>';
+}
+
+// ── NAV ──
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const tabs=['setup','matchs','classement','historique'];
+  document.querySelectorAll('.tab')[tabs.indexOf(id)].classList.add('active');
+  if(id==='classement')renderClassement();
+  if(id==='historique')renderHistorique();
+  if(id==='matchs')renderMatchs();
+}
+
+// ── SAUVEGARDE AUTO ──
+window.addEventListener('beforeunload', sauvegarder);
+window.addEventListener('pagehide', sauvegarder);
+setInterval(sauvegarder, 30000);
+
+// Sauvegarde intégrée dans validerRonde
+const _validerRonde = validerRonde;
+validerRonde = function(ri){ _validerRonde(ri); sauvegarder(); };
+
+// ── CODES D'ACCÈS ──
+const CODE_ADMIN = 'Enola2003';
+const CODE_SPECTATEUR = 'Amiciwilly';
+let modeAdmin = false;
+
+// Garde universelle — bloque toute action si spectateur
+function adminSeulement(nomAction){
+  if(!modeAdmin){
+    console.warn('Action bloquée (spectateur):', nomAction);
+    return false;
+  }
+  return true;
+}
+
+function verifierCode(){
+  const val = document.getElementById('login-input').value;
+  const err = document.getElementById('login-error');
+  if(val === CODE_ADMIN){
+    modeAdmin = true;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-app').style.display='block';
+    initApp();
+  } else if(val === CODE_SPECTATEUR){
+    modeAdmin = false;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-app').style.display='block';
+    initApp();
+  } else {
+    err.style.display='block';
+    document.getElementById('login-input').value='';
+    document.getElementById('login-input').focus();
+    setTimeout(()=>err.style.display='none', 3000);
+  }
+}
+
+// ── GESTION DES MODES ──
+function appliquerMode(){
+  const bandeau = document.getElementById('bandeau-mode');
+  const icone = document.getElementById('bandeau-icone');
+  const texte = document.getElementById('bandeau-texte');
+
+  if(modeAdmin){
+    if(bandeau){
+      bandeau.style.display = 'flex';
+      bandeau.style.background = 'linear-gradient(90deg,#3a0000,#5a0808,#3a0000)';
+      bandeau.style.borderBottom = '1px solid rgba(201,168,76,.4)';
+      bandeau.style.color = '#FFD700';
+    }
+    if(icone) icone.textContent = '👑';
+    if(texte) texte.textContent = 'Administrateur';
+    document.querySelectorAll('.tab').forEach(t => t.style.display = '');
+  } else {
+    if(bandeau){
+      bandeau.style.display = 'flex';
+      bandeau.style.background = 'linear-gradient(90deg,#0a1a4a,#1a2a6a,#0a1a4a)';
+      bandeau.style.borderBottom = '2px solid #6495ED';
+      bandeau.style.color = '#8ab4f8';
+    }
+    if(icone) icone.textContent = '👁';
+    if(texte) texte.textContent = 'Mode Spectateur — Consultation uniquement';
+    document.querySelectorAll('.tab').forEach((t,i) => {
+      if(i === 0) t.style.display = 'none';
+    });
+    showPage(tournoiDemarre ? 'matchs' : 'classement');
+  }
+}
+
+function verrouillerSaisie(){
+  if(modeAdmin) return;
+  // Bloquer tous les inputs
+  document.querySelectorAll('input, select').forEach(el => {
+    el.disabled = true;
+    el.style.pointerEvents = 'none';
+    el.style.opacity = '0.4';
+  });
+  // Bloquer tous les boutons sauf navigation onglets
+  document.querySelectorAll('button, .add-btn').forEach(el => {
+    if(el.closest('.tabs')) return;
+    el.disabled = true;
+    el.style.pointerEvents = 'none';
+    el.style.opacity = '0.3';
+    el.style.cursor = 'not-allowed';
+  });
+  // Cacher page setup
+  const setup = document.getElementById('page-setup');
+  if(setup) setup.style.display = 'none';
+}
+
+function initApp(){
+  initFirebase();
+  restaurer();
+  initJoueurs();
+  if(tournoiDemarre){
+    masquerEtapes();
+    const se = document.getElementById('step-equipes');
+    if(se) se.style.display = '';
+    renderEquipesTirees();
+  }
+  renderClassement();
+  renderHistorique();
+  if(tournoiDemarre) renderMatchs();
+  // Appliquer le mode APRÈS que tout est rendu
+  setTimeout(() => {
+    appliquerMode();
+    if(!modeAdmin) verrouillerSaisie();
+  }, 200);
+}
+
+// Override showPage pour bloquer accès setup en spectateur
+const _showPageOrig = showPage;
+showPage = function(id){
+  if(!modeAdmin && id === 'setup') return;
+  _showPageOrig(id);
+};
+
+// ── FIREBASE ──
+const firebaseConfig = {
+  apiKey: "AIzaSyDY6fwDyPQKWTqo0k5S1JyVvg2pBALPCJQ",
+  authDomain: "belote-amici-wb.firebaseapp.com",
+  projectId: "belote-amici-wb",
+  storageBucket: "belote-amici-wb.firebasestorage.app",
+  messagingSenderId: "546141111898",
+  appId: "1:546141111898:web:b659dded4d0f3fed64ba63",
+  databaseURL: "https://belote-amici-wb-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+let db = null;
+let syncActive = false;
+
+function initFirebase(){
+  try {
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    syncActive = true;
+    console.log('Firebase connecté ✅'); const sd=document.getElementById('sync-dot'); if(sd){sd.textContent='🟢';sd.title='Firebase connecté';}
+    // Écouter les changements en temps réel
+    let dernierEcrit = 0;
+    db.ref('tournoi').on('value', snap => {
+      const data = snap.val();
+      if(!data) return;
+      // Ignorer si on vient d'écrire nous-mêmes (évite boucle)
+      if(Date.now() - dernierEcrit < 1500) return;
+      // Mettre à jour l'état
+      if(data.joueurs) joueurs = data.joueurs;
+      if(data.equipes !== undefined) equipes = data.equipes || [];
+      if(data.rondes !== undefined) rondes = data.rondes || [];
+      if(data.rondeActive !== undefined) rondeActive = data.rondeActive;
+      if(data.tournoiDemarre !== undefined) tournoiDemarre = data.tournoiDemarre;
+      if(data.NB_RONDES) NB_RONDES = data.NB_RONDES;
+      // Rafraîchir l'affichage
+      renderMatchs();
+      renderClassement();
+      renderHistorique();
+      if(tournoiDemarre){
+        masquerEtapes();
+        const se=document.getElementById('step-equipes');
+        if(se) se.style.display='';
+        renderEquipesTirees();
+      }
+      if(!modeAdmin) setTimeout(verrouillerSaisie, 200);
+    });
+    // Exposer dernierEcrit pour syncFirebase
+    window._fbLastWrite = () => { dernierEcrit = Date.now(); };
+  } catch(e) {
+    console.warn('Firebase non disponible, mode local:', e);
+    syncActive = false;
+  }
+}
+
+function syncFirebase(){
+  if(!syncActive || !db) return;
+  try {
+    if(window._fbLastWrite) window._fbLastWrite();
+    db.ref('tournoi').set({
+      joueurs, equipes, rondes, rondeActive, tournoiDemarre, NB_RONDES,
+      lastUpdate: Date.now()
+    }).then(()=>{
+      const sd=document.getElementById('sync-dot');
+      if(sd){ sd.textContent='🟢'; setTimeout(()=>{ if(sd) sd.textContent='🟢'; },1000); }
+    }).catch(e=>{
+      console.warn('Sync Firebase échoué:', e);
+      const sd=document.getElementById('sync-dot');
+      if(sd) sd.textContent='🔴';
+    });
+  } catch(e){ console.warn('Sync Firebase échoué:', e); }
+}
+
+// ── SERVICE WORKER ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ── INSTALL BANNER ──
+let deferredPrompt;
+
+// Détecter la plateforme
+function detectPlatform(){
+  const ua = navigator.userAgent;
+  if(/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios';
+  if(/Android/.test(ua)) return 'android';
+  return 'autre';
+}
+
+function afficherInstall(){
+  const popup = document.getElementById('popup-install');
+  const platform = detectPlatform();
+  document.getElementById('install-android').style.display = platform==='android' ? 'block' : 'none';
+  document.getElementById('install-ios').style.display = platform==='ios' ? 'block' : 'none';
+  document.getElementById('install-autre').style.display = (platform==='autre') ? 'block' : 'none';
+  if(popup) popup.style.display = 'flex';
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Afficher le bouton flottant pour tout le monde
+  const btn = document.getElementById('btn-install-fixe');
+  if(btn) btn.style.display = 'block';
+});
+
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('btn-install-fixe');
+  if(btn) btn.style.display = 'none';
+  const popup = document.getElementById('popup-install');
+  if(popup) popup.style.display = 'none';
+});
+
+function installApp(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(()=>{ deferredPrompt=null; });
+    const popup = document.getElementById('popup-install');
+    if(popup) popup.style.display='none';
+  }
+}
+
+// Sur iOS, toujours montrer le bouton (pas de beforeinstallprompt)
+window.addEventListener('load', ()=>{
+  if(detectPlatform()==='ios'){
+    const btn = document.getElementById('btn-install-fixe');
+    if(btn) btn.style.display = 'block';
+  }
+});
+
+// ── INIT ──
+restaurer();
+initJoueurs();
+if(tournoiDemarre){
+  masquerEtapes();
+  document.getElementById('step-equipes').style.display='';
+  renderEquipesTirees();
+}
+renderClassement();renderHistorique();
+if(tournoiDemarre) renderMatchs();
+</script>
+</div><!-- /main-app -->
+
+<!-- INSTALL BANNER (Android) -->
+<div id="install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(90deg,#0a0a0a,#1a1a1a);
+  border-top:2px solid var(--or);padding:12px 16px;
+  align-items:center;justify-content:space-between;gap:10px;
+  z-index:999;box-shadow:0 -4px 20px rgba(0,0,0,.6)">
+  <div style="color:var(--or-clair);font-family:'Cinzel',serif;font-size:.78rem">📲 Installer l'app</div>
+  <div style="display:flex;gap:8px">
+    <button class="btn vert" style="padding:8px 14px;font-size:.75rem" onclick="installApp()">Installer</button>
+    <button class="btn sec" style="padding:8px 14px;font-size:.75rem" onclick="document.getElementById('install-banner').style.display='none'">✕</button>
+  </div>
+</div>
+
+<!-- BOUTON INSTALLER FIXE EN BAS (visible pour tous) -->
+<div id="btn-install-fixe" style="display:none;position:fixed;bottom:16px;right:16px;z-index:998">
+  <button onclick="afficherInstall()" style="
+    background:linear-gradient(135deg,#1e7e34,#27ae60);
+    color:white;border:1px solid rgba(46,204,113,.4);
+    border-radius:50px;padding:10px 18px;
+    font-family:'Cinzel',serif;font-size:.72rem;font-weight:700;
+    letter-spacing:1px;cursor:pointer;
+    box-shadow:0 4px 16px rgba(0,0,0,.5);
+    display:flex;align-items:center;gap:7px;
+  ">📲 Installer l'app</button>
+</div>
+
+<!-- POPUP INSTRUCTIONS INSTALLATION -->
+<div id="popup-install" style="display:none;position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,.85);align-items:center;justify-content:center;padding:20px">
+  <div style="background:linear-gradient(160deg,#0e3818,#0a0a0a);
+    border:1px solid var(--or);border-radius:14px;
+    padding:24px;max-width:340px;width:100%;
+    box-shadow:0 8px 40px rgba(0,0,0,.8)">
+    <div style="font-family:'Cinzel',serif;font-size:1rem;color:var(--or-clair);
+      text-align:center;margin-bottom:16px;letter-spacing:1px">
+      📲 Installer l'application
+    </div>
+
+    <!-- Android -->
+    <div id="install-android" style="display:none">
+      <div style="font-size:.85rem;color:var(--texte2);margin-bottom:12px;line-height:1.6">
+        Sur <strong style="color:var(--or)">Android / Chrome</strong> :
+      </div>
+      <button onclick="installApp()" style="width:100%;
+        background:linear-gradient(135deg,#1e7e34,#27ae60);
+        color:white;border:1px solid rgba(46,204,113,.3);
+        border-radius:8px;padding:12px;
+        font-family:'Cinzel',serif;font-size:.8rem;font-weight:700;
+        cursor:pointer;margin-bottom:10px">
+        ▶ Installer maintenant
+      </button>
+    </div>
+
+    <!-- iOS -->
+    <div id="install-ios" style="display:none">
+      <div style="font-size:.85rem;color:var(--texte2);line-height:1.8">
+        Sur <strong style="color:var(--or)">iPhone / Safari</strong> :<br>
+        1️⃣ Appuie sur le bouton <strong>Partager</strong> <span style="font-size:1rem">⬆️</span><br>
+        2️⃣ Fais défiler et appuie sur<br>
+        &nbsp;&nbsp;&nbsp;<strong>"Sur l'écran d'accueil"</strong> 📱<br>
+        3️⃣ Appuie sur <strong>"Ajouter"</strong> ✅
+      </div>
+    </div>
+
+    <!-- Autre -->
+    <div id="install-autre" style="display:none">
+      <div style="font-size:.85rem;color:var(--texte2);line-height:1.8">
+        Dans votre navigateur, cherchez l'option<br>
+        <strong style="color:var(--or)">"Ajouter à l'écran d'accueil"</strong><br>
+        ou <strong style="color:var(--or)">"Installer l'application"</strong><br>
+        dans le menu ⋮
+      </div>
+    </div>
+
+    <button onclick="document.getElementById('popup-install').style.display='none'"
+      style="width:100%;margin-top:16px;
+        background:transparent;color:var(--or-dim);
+        border:1px solid var(--or-dim);border-radius:8px;
+        padding:10px;font-family:'Cinzel',serif;font-size:.75rem;
+        cursor:pointer;letter-spacing:1px">
+      ✕ Fermer
+    </button>
+  </div>
+</div>
+</body>
+</html>
